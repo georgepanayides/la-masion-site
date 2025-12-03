@@ -1,65 +1,92 @@
+
+import type { Metadata } from "next";
 import Image from "next/image";
+import { localBusinessStructuredData } from "./seo/structuredData";
+import Experience from "./components/Experience";
+import Benefits from "./components/Benefits";
+import Spa from "./components/Spa";
+import Treatments from "./components/Treatments";
+import Testimonials from "./components/Testimonials";
+import SpaceGallery from "./components/SpaceGallery";
+import FAQ from "./components/FAQ";
+import BookingPanel from "./components/BookingPanel";
+
+export const metadata: Metadata = {
+  title: "Japanese Head Spa Sunshine Coast — La Maison de Aesthetics",
+  description: "Luxury Japanese head spa on the Sunshine Coast — restorative scalp treatments, massage and lasting results.",
+  openGraph: {
+    title: "La Maison de Aesthetics — Japanese Head Spa, Sunshine Coast",
+    description: "Luxury Japanese head spa. Deep scalp detox, relaxing massage and renewed hair health.",
+    images: [
+      {
+        url: "/images/la-masion-treatment.png",
+        width: 1200,
+        height: 630,
+        alt: "La Maison treatment room"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "La Maison de Aesthetics — Head Spa",
+    description: "Book a restorative Japanese head spa on the Sunshine Coast",
+  }
+};
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main id="main-content" className="antialiased">
+      <script type="application/ld+json">{JSON.stringify(localBusinessStructuredData)}</script>
+
+      {/* Hero */}
+      <section id="home" className="relative min-h-screen grid grid-cols-1 items-end bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url(images/la-masion-receiption.png)" }}>
+        <div className="absolute inset-0 bg-gradient-to-t from-stone-800/75 via-stone-800/35 to-transparent" />
+        <div className="max-w-4xl mx-auto text-center lg:p-21 p-12 z-10">
+            <h1 className="text-xl lg:text-2xl mb-3 text-white font-regular uppercase tracking-wide">La Maison de Aesthetics</h1>
+            <p className="max-w-3xl text-cream text-sm tracking-wide uppercase mb-6">Japanese Head Spa — Sunshine Coast</p>
+            <a href="#booking" className="inline-flex items-center gap-2 px-6 py-3 border border-stone bg-rice-paper text-stone-800 text-xs uppercase tracking-widest">Book an Appointment</a>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      {/* Intro */}
+      <section className="py-16 md:py-20 bg-silk-cream">
+        <div className="container max-w-4xl mx-auto px-6">
+          <div className="pt-12 pb-12 flex flex-col items-center">
+            <hr className="text-sand-stone w-1/3 pb-9"/>
+            <p className="text-center text-xs md:text-sm uppercase tracking-wide leading-loose text-stone-grey font-light">
+              La Maison de Aesthetics is the Sunshine Coast&apos;s premier destination for authentic Japanese head spa treatments.
+              We specialise in restorative scalp therapy, combining traditional techniques with modern wellness.
+              Our signature rituals promote deep relaxation, improved circulation, and lasting hair health.
+              Experience personalised care in a serene, minimal environment designed for renewal.
+            </p>
+            <hr className="text-sand-stone w-1/3 mt-9"/>
+          </div>
         </div>
-      </main>
-    </div>
+      </section>
+
+      {/* Experience */}
+      <Experience />
+
+      {/* Benefits */}
+      <Benefits />
+
+      {/* Spa & Equipment */}
+      <Spa />
+
+      {/* Treatments Menu */}
+      <Treatments />
+
+      {/* Testimonials & Social Proof */}
+      <Testimonials />
+
+      {/* The Space Gallery */}
+      <SpaceGallery />
+
+      {/* FAQ */}
+      <FAQ />
+
+      {/* Booking */}
+      <BookingPanel />
+    </main>
   );
 }
