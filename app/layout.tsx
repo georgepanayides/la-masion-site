@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Banner from "@/components/banner/Banner";
+import Header from "@/components/header/Header";
+import Footer from "@/components/footer/Footer";
 
 const brandSans = Inter({
   variable: "--font-brand-sans",
@@ -38,13 +40,9 @@ export default function RootLayout({
       <body className={`${brandSans.variable} ${brandSerif.variable} ${geistMono.variable} antialiased`}>
         <a href="#main-content" className="sr-only focus:not-sr-only focus:translate-y-0 focus:opacity-100 block m-4 p-2 bg-white rounded-md border border-gray-200 z-50">Skip to main content</a>
         <Banner/>
+        <Header/>
         {children}
-        <footer className="border-t border-driftwood/20 py-8 px-6 text-stone">
-          <div className="container max-w-6xl mx-auto flex justify-between items-center">
-            <small>&copy; {new Date().getFullYear()} La Maison de Aesthetics</small>
-            <small>Elegance, reimagined.</small>
-          </div>
-        </footer>
+        <Footer />
       </body>
     </html>
   );

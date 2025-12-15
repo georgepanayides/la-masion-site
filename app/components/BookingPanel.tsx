@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
+import { treatments } from "../data/Treatments";
+import DatePicker from "../../components/ui/DatePicker";
 
 type Step = 'service' | 'datetime' | 'details' | 'confirmation';
 
@@ -29,13 +32,6 @@ export default function BookingPanel() {
     phone: '',
     notes: '',
   });
-
-  const services = [
-    { id: 'signature', name: 'Signature Head Spa', duration: '60 min', price: 180 },
-    { id: 'deep-renewal', name: 'Deep Renewal', duration: '90 min', price: 260, featured: true },
-    { id: 'express', name: 'Express Refresh', duration: '30 min', price: 95 },
-    { id: 'couples', name: 'Couples Experience', duration: '60 min', price: 340 },
-  ];
 
   const addons = [
     { id: 'aromatherapy', name: 'Aromatherapy Upgrade', price: 25 },
@@ -80,13 +76,13 @@ export default function BookingPanel() {
     return false;
   };
 
-  const selectedService = services.find(s => s.id === formData.service);
+  const selectedService = treatments.find(t => t.id === formData.service);
   const selectedAddons = addons.filter(a => formData.addon.includes(a.id));
-  const totalPrice = (selectedService?.price || 0) + selectedAddons.reduce((sum, a) => sum + a.price, 0);
+  const totalPrice = (selectedService ? parseInt(selectedService.price) : 0) + selectedAddons.reduce((sum, a) => sum + a.price, 0);
 
   return (
     <section id="booking" className="relative py-16 md:py-24 bg-warm-white">
-      <div className="container max-w-4xl mx-auto px-6">
+      <div className="container max-w-4xl mx-auto px-3">
         {/* Header */}
         <div className="mb-12 text-center">
           <p className="text-xs uppercase tracking-widest text-stone-grey/70 mb-3">
@@ -125,7 +121,7 @@ export default function BookingPanel() {
         )}
 
         {/* Booking Panel */}
-        <div className="bg-silk-cream border border-stone-800/12 p-6 md:p-10">
+        <div className="bg-silk-cream border border-stone-800/12 p-3 md:p-10">
           
           {/* Step 1: Choose Service */}
           {currentStep === 'service' && (
@@ -135,28 +131,43 @@ export default function BookingPanel() {
               </h3>
               
               <div className="grid grid-cols-1 gap-4">
-                {services.map((service) => (
+                {treatments.map((treatment) => (
                   <button
-                    key={service.id}
-                    onClick={() => handleServiceSelect(service.id)}
-                    className={`text-left p-6 border transition-all duration-300 relative ${
-                      formData.service === service.id
+                    key={treatment.id}
+                    onClick={() => handleServiceSelect(treatment.id)}
+                    className={`text-left flex gap-4 p-6 border transition-all duration-300 relative ${
+                      formData.service === treatment.id
                         ? 'border-stone bg-warm-white'
                         : 'border-stone-800/12 bg-warm-white hover:border-stone-800/25'
                     }`}
                   >
-                    {service.featured && (
+                    {treatment.featured && (
                       <span className="absolute -top-2 right-4 bg-stone px-3 py-0.5 text-xs uppercase tracking-widest text-warm-white">
                         Popular
                       </span>
                     )}
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="text-sm uppercase tracking-wider text-sumi-ink">
-                        {service.name}
-                      </h4>
-                      <span className="text-lg font-light text-stone">${service.price}</span>
+                    
+                    {/* Image */}
+                    <div className="relative w-24 h-24 flex-shrink-0 overflow-hidden">
+                      <Image
+                        src={treatment.image}
+                        alt={treatment.name}
+                        fill
+                        className="object-cover"
+                        sizes="96px"
+                      />
                     </div>
-                    <p className="text-xs text-stone-grey">{service.duration}</p>
+
+                    {/* Content */}
+                    <div className="flex-grow">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="text-sm uppercase tracking-wider text-sumi-ink">
+                          {treatment.name}
+                        </h4>
+                        <span className="text-lg font-light text-stone">${treatment.price}</span>
+                      </div>
+                      <p className="text-xs text-stone-grey">{treatment.duration}</p>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -174,12 +185,25 @@ export default function BookingPanel() {
                         className="flex items-center justify-between p-4 border border-stone-800/12 bg-warm-white cursor-pointer hover:border-stone-800/25 transition-all"
                       >
                         <div className="flex items-center gap-3">
-                          <input
-                            type="checkbox"
-                            checked={formData.addon.includes(addon.id)}
-                            onChange={() => handleAddonToggle(addon.id)}
-                            className="w-4 h-4"
-                          />
+                          <div className="relative">
+                            <input
+                              type="checkbox"
+                              checked={formData.addon.includes(addon.id)}
+                              onChange={() => handleAddonToggle(addon.id)}
+                              className="sr-only"
+                            />
+                            <div className={`w-5 h-5 border-2 transition-all duration-200 flex items-center justify-center ${
+                              formData.addon.includes(addon.id)
+                                ? 'bg-stone-800 border-stone-800'
+                                : 'bg-warm-white border-stone-800/30'
+                            }`}>
+                              {formData.addon.includes(addon.id) && (
+                                <svg className="w-3 h-3 text-warm-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </div>
+                          </div>
                           <span className="text-xs text-stone-grey">{addon.name}</span>
                         </div>
                         <span className="text-sm text-stone">+${addon.price}</span>
@@ -203,12 +227,10 @@ export default function BookingPanel() {
                 <label className="block text-xs uppercase tracking-wider text-stone-grey mb-3">
                   Preferred Date
                 </label>
-                <input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  min={new Date().toISOString().split('T')[0]}
-                  className="w-full p-4 border border-stone-800/12 bg-warm-white text-sm text-stone-grey focus:outline-none focus:border-stone transition-all"
+                <DatePicker
+                  selectedDate={formData.date}
+                  onDateSelect={(date) => setFormData({ ...formData, date })}
+                  minDate={new Date().toISOString().split('T')[0]}
                 />
               </div>
 
@@ -434,10 +456,10 @@ export default function BookingPanel() {
               Prefer to book by phone?
             </p>
             <a 
-              href="tel:+61XXXXXXXXX"
+              href="tel:+61753388715"
               className="inline-flex items-center gap-2 px-6 py-3 border border-stone-800/20 text-stone-grey text-xs uppercase tracking-widest hover:border-stone hover:text-stone transition-all duration-300"
             >
-              Call Us
+              Call (07) 5338 8715
             </a>
           </div>
         )}

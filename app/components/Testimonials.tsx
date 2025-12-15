@@ -1,3 +1,5 @@
+import { FaHeartbeat, FaCertificate, FaShieldAlt, FaStar } from 'react-icons/fa';
+
 export default function Testimonials() {
   const testimonials = [
     {
@@ -25,22 +27,22 @@ export default function Testimonials() {
 
   const credentials = [
     {
-      icon: "🏥",
+      icon: <FaHeartbeat />,
       title: "Medical Grade Equipment",
       desc: "Professional-grade tools and technology"
     },
     {
-      icon: "✓",
+      icon: <FaCertificate />,
       title: "Qualified Practitioners",
       desc: "Certified in Japanese head spa techniques"
     },
     {
-      icon: "⚕️",
+      icon: <FaShieldAlt />,
       title: "TGA Approved Products",
       desc: "Therapeutic-grade, safety-tested formulations"
     },
     {
-      icon: "★",
+      icon: <FaStar />,
       title: "5-Star Rated",
       desc: "Consistently excellent reviews from clients"
     },
@@ -117,13 +119,15 @@ export default function Testimonials() {
             Clinical Excellence & Trust
           </h3>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {credentials.map((cred) => (
               <div 
                 key={cred.title}
-                className="text-center p-6 bg-silk-cream border border-stone-800/12 hover:border-driftwood/40 transition-all duration-300"
+                className="text-center p-8 md:p-6 bg-silk-cream border border-stone-800/12 hover:border-driftwood/40 transition-all duration-300"
               >
-                <div className="text-2xl mb-3">{cred.icon}</div>
+                <div className="flex justify-center mb-4 text-clay text-3xl md:text-2xl">
+                  {cred.icon}
+                </div>
                 <p className="text-xs uppercase tracking-wider text-sumi-ink mb-2 font-normal">
                   {cred.title}
                 </p>

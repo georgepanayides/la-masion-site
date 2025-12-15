@@ -1,21 +1,22 @@
 import Image from "next/image";
+import Link from 'next/link';
 
 export default function Benefits() {
   const benefits = [
     { 
       title: 'Stress Relief', 
       desc: 'Unwind with calming, sensory-focused techniques. Reduce tension headaches and daily stress through targeted pressure-point massage.',
-      image: '/images/la-masion-towels-bowls.png'
+      image: '/images/stress-relief.png'
     },
     { 
       title: 'Scalp Health', 
       desc: 'Deeper scalp cleanse for lasting health. Restore and balance with targeted care that removes build-up and promotes circulation.',
-      image: '/images/la-masion-towels-bowls.png'
+      image: '/images/scalp-health2.png'
     },
     { 
       title: 'Hair Vitality', 
       desc: 'Improve hair strength, shine, and manageability. Nourishing treatments that enhance natural lustre and texture.',
-      image: '/images/la-masion-towels-bowls.png'
+      image: '/images/hair-vitality.png'
     },
   ];
 
@@ -65,9 +66,17 @@ export default function Benefits() {
 
         {/* Additional Note */}
         <div className="mt-12 md:mt-16 pt-8 border-t border-stone-800/20 text-center">
-          <p className="text-xs uppercase tracking-widest text-stone-grey/70">
+          <p className="text-xs uppercase tracking-widest text-stone-grey/70 mb-8">
             Visible results • Lasting wellness • Renewed calm
           </p>
+          
+          <Link
+            href="/treatments"
+            className="inline-flex items-center gap-2 px-8 py-3 border border-stone-800 bg-stone-800 text-warm-white text-xs uppercase tracking-widest hover:bg-stone-800/90 transition"
+            aria-label="View our treatments"
+          >
+            View Treatments
+          </Link>
         </div>
       </div>
     </section>

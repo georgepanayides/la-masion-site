@@ -1,11 +1,10 @@
 
 import type { Metadata } from "next";
-import Image from "next/image";
 import { localBusinessStructuredData } from "./seo/structuredData";
+import Hero from "./components/Hero";
 import Experience from "./components/Experience";
 import Benefits from "./components/Benefits";
 import Spa from "./components/Spa";
-import Treatments from "./components/Treatments";
 import Testimonials from "./components/Testimonials";
 import SpaceGallery from "./components/SpaceGallery";
 import FAQ from "./components/FAQ";
@@ -39,19 +38,12 @@ export default function Home() {
       <script type="application/ld+json">{JSON.stringify(localBusinessStructuredData)}</script>
 
       {/* Hero */}
-      <section id="home" className="relative min-h-screen grid grid-cols-1 items-end bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url(images/la-masion-receiption.png)" }}>
-        <div className="absolute inset-0 bg-gradient-to-t from-stone-800/75 via-stone-800/35 to-transparent" />
-        <div className="max-w-4xl mx-auto text-center lg:p-21 p-12 z-10">
-            <h1 className="text-xl lg:text-2xl mb-3 text-white font-regular uppercase tracking-wide">La Maison de Aesthetics</h1>
-            <p className="max-w-3xl text-cream text-sm tracking-wide uppercase mb-6">Japanese Head Spa — Sunshine Coast</p>
-            <a href="#booking" className="inline-flex items-center gap-2 px-6 py-3 border border-stone bg-rice-paper text-stone-800 text-xs uppercase tracking-widest">Book an Appointment</a>
-        </div>
-      </section>
+      <Hero />
 
       {/* Intro */}
-      <section className="py-16 md:py-20 bg-silk-cream">
+      <section className="py-12 md:py-20 bg-silk-cream">
         <div className="container max-w-4xl mx-auto px-6">
-          <div className="pt-12 pb-12 flex flex-col items-center">
+          <div className="md:pt-12 md:pb-12 pt-2 pb-2 flex flex-col items-center">
             <hr className="text-sand-stone w-1/3 pb-9"/>
             <p className="text-center text-xs md:text-sm uppercase tracking-wide leading-loose text-stone-grey font-light">
               La Maison de Aesthetics is the Sunshine Coast&apos;s premier destination for authentic Japanese head spa treatments.
@@ -73,14 +65,11 @@ export default function Home() {
       {/* Spa & Equipment */}
       <Spa />
 
-      {/* Treatments Menu */}
-      <Treatments />
+      {/* The Space Gallery */}
+      <SpaceGallery />
 
       {/* Testimonials & Social Proof */}
       <Testimonials />
-
-      {/* The Space Gallery */}
-      <SpaceGallery />
 
       {/* FAQ */}
       <FAQ />

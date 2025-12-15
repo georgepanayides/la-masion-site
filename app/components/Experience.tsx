@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function Experience() {
   const steps = [
     { 
@@ -94,6 +96,17 @@ export default function Experience() {
               {keyword}
             </span>
           ))}
+        </div>
+
+        {/* CTA Button */}
+        <div className="mt-12 text-center">
+          <Link
+            href="/treatments"
+            className="inline-flex items-center gap-2 px-8 py-3 border border-clay bg-warm-white text-stone-800 text-xs uppercase tracking-widest hover:bg-clay/10 transition"
+            aria-label="View our treatments"
+          >
+            View Treatments
+          </Link>
         </div>
       </div>
     </section>
