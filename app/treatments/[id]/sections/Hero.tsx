@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Treatment } from "../../../data/Treatments";
 
 interface HeroProps {
@@ -33,12 +34,12 @@ export default function Hero({ treatment }: HeroProps) {
             >
               View Pricing
             </a>
-            <a 
-              href="#booking"
+            <Link 
+              href={`/booking?service=${treatment.id}`}
               className="inline-flex items-center justify-center px-8 py-4 border-2 border-rice-paper text-rice-paper text-xs uppercase tracking-widest hover:bg-rice-paper/10 transition"
             >
               Book Now
-            </a>
+            </Link>
           </div>
         </div>
       </div>

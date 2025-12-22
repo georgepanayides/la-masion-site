@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { treatments } from "../data/Treatments";
+import { bookingAddOns, treatments } from "../data/Treatments";
 import DatePicker from "../../components/ui/DatePicker";
+import PackageDisclaimer from "./ui/PackageDisclaimer";
 
 type Step = 'service' | 'datetime' | 'details' | 'confirmation';
 
@@ -19,10 +21,10 @@ interface FormData {
   notes: string;
 }
 
-export default function BookingPanel() {
-  const [currentStep, setCurrentStep] = useState<Step>('service');
+function BookingPanelContent({ initialServiceId }: { initialServiceId: string }) {
+  const [currentStep, setCurrentStep] = useState<Step>("service");
   const [formData, setFormData] = useState<FormData>({
-    service: '',
+    service: initialServiceId,
     addon: [],
     date: '',
     time: '',
@@ -33,11 +35,7 @@ export default function BookingPanel() {
     notes: '',
   });
 
-  const addons = [
-    { id: 'aromatherapy', name: 'Aromatherapy Upgrade', price: 25 },
-    { id: 'massage', name: 'Extended Massage', price: 45 },
-    { id: 'mask', name: 'Hair Treatment Mask', price: 35 },
-  ];
+  const addons = bookingAddOns;
 
   const timeSlots = [
     '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
@@ -463,7 +461,26 @@ export default function BookingPanel() {
             </a>
           </div>
         )}
+
+        <PackageDisclaimer />
       </div>
     </section>
+  );
+}
+
+function BookingPanelWithParams() {
+  const searchParams = useSearchParams();
+  const serviceIdParam = searchParams.get("service");
+  const initialServiceId =
+    serviceIdParam && treatments.some((t) => t.id === serviceIdParam) ? serviceIdParam : "";
+
+  return <BookingPanelContent key={initialServiceId} initialServiceId={initialServiceId} />;
+}
+
+export default function BookingPanel() {
+  return (
+    <Suspense fallback={<div className="py-24 text-center">Loading booking form...</div>}>
+      <BookingPanelWithParams />
+    </Suspense>
   );
 }

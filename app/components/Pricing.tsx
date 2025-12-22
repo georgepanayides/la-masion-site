@@ -1,6 +1,8 @@
+import PackageDisclaimer from "./ui/PackageDisclaimer";
+
 export default function Pricing() {
   const plans = [
-    { name: "Intro Discovery", price: "$79", desc: "First-time offer — 30min scalp renewal + consultation" },
+    { name: "Xmas Offer", price: "$79", desc: "Xmas offer — 30min scalp renewal + consultation (Use code Xmas10)" },
     { name: "Signature Head Spa", price: "$149", desc: "90min full ritual for scalp health & deep relaxation" },
     { name: "Renewal Package (3)", price: "$420", desc: "Three-session package — save & sustain results" },
   ];
@@ -24,6 +26,8 @@ export default function Pricing() {
             </article>
           ))}
         </div>
+
+        <PackageDisclaimer />
       </div>
     </section>
   );

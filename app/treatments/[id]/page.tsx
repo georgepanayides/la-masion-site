@@ -47,7 +47,7 @@ export default async function TreatmentDetailPage({ params }: Props) {
       <BenefitsStrip />
       <Description treatment={treatment} />
       <Pricing treatment={treatment} />
-      <FinalCTA treatmentName={treatment.name} />
+      <FinalCTA treatmentName={treatment.name} treatmentId={treatment.id} />
     </main>
   );
 }

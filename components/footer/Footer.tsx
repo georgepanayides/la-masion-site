@@ -16,7 +16,7 @@ export default function Footer() {
             </p>
             <div className="flex gap-4">
               <a
-                href="#"
+                href="https://www.instagram.com/lamaisondeaesthetics_"
                 className="text-silk-cream/60 hover:text-clay transition-colors"
                 aria-label="Instagram"
               >

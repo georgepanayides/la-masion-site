@@ -24,6 +24,23 @@ export interface AddOn {
   category: 'beauty' | 'massage' | 'facial' | 'therapy';
 }
 
+export interface BookingAddOn {
+  id: string;
+  name: string;
+  price: number;
+}
+
+// Head spa enhancements shown during booking and under treatment pricing.
+export const bookingAddOns: BookingAddOn[] = [
+  { id: 'reflexology', name: 'Reflexology Foot Massage', price: 40 },
+  { id: 'facial-sculpt', name: 'Facials Sculpt Massage', price: 40 },
+  { id: 'collagen-eye', name: 'Collagen Eye Treatment', price: 30 },
+  { id: 'magnesium-soak', name: 'Magnesium Foot Soak', price: 25 },
+  { id: 'aromatherapy', name: 'Aromatherapy Upgrade', price: 25 },
+  { id: 'massage', name: 'Extended Massage', price: 45 },
+  { id: 'mask', name: 'Hair Treatment Mask', price: 35 },
+];
+
 export const addOns: AddOn[] = [
   // Beauty
   { id: 'brow-wax-tint', name: 'Brow Wax & Tint', duration: '20 min', price: '45', description: 'Shape and define your brows with professional waxing and tinting for a polished, natural look.', category: 'beauty' },
@@ -49,122 +66,130 @@ export const treatments: Treatment[] = [
   {
     id: 'tranquility-ritual',
     name: 'Tranquility Ritual',
-    duration: '70 min',
-    price: '195',
-    description: 'A deeply restorative journey designed to melt away stress and restore balance. This immersive experience combines therapeutic massage, aromatic rituals, and hydrating treatments to leave you feeling completely renewed.',
+    duration: '90 min',
+    price: '260',
+    description: 'A restorative Japanese head spa ritual designed to ease tension, deeply cleanse, and hydrate the scalp and hair while supporting full-body relaxation.',
     features: [
-      'Welcome ritual',
-      'Aromatherapy relaxation & warm oil scalp massage',
-      'Exfoliating scalp treatment',
-      'Hydrating deep cleansing shampoo',
-      'Blissful scalp massage',
+      'Signature welcome ritual',
+      'Aromatherapy relaxation with warm oil scalp, neck & shoulder massage',
+      'Refining exfoliating scalp treatment',
+      'Blissful therapeutic scalp massage',
+      'Hydrating deep-cleansing shampoo',
+      'Halo water therapy with scalp massage',
       'Nourishing conditioner',
-      'Halo Water therapy & head, neck, shoulders massage',
-      'Hydrating steam therapy & deep moisture hair treatment',
-      'Face, neck, shoulders & arms massage',
+      'Hydrating steam therapy with deep moisture hair treatment',
+      'Grounding neck, shoulders & arm massage',
       'Hydrating leave-in serum',
-      'Hot towel therapy',
-      'Gentle dry-off'
+      'Luxurious hot towel therapy',
+      'Facial lymphatic drainage massage',
+      'Gentle dry-off',
+      'Ayurvedic herbal tea'
     ],
     image: '/images/la-masion-treatment.png',
-    bestFor: ['Stress relief', 'Deep hydration', 'Mental clarity'],
+    bestFor: ['Deep relaxation', 'Scalp hydration', 'Stress relief'],
     groupPricing: [
-      { size: 'Single Session', price: '195' },
-      { size: 'Package of 3', price: '555', discount: 'Save $30' },
-      { size: 'Package of 5', price: '875', discount: 'Save $100' }
+      { size: 'Single Session', price: '260' },
+      { size: 'Package of 3', price: '700', discount: 'Save $80' },
+      { size: 'Package of 5', price: '1100', discount: 'Save $200' }
     ]
   },
   {
     id: 'revival-ritual',
     name: 'The Revival Ritual',
-    duration: '90 min',
-    price: '260',
-    description: 'A transformative sensory escape that awakens the senses and revitalizes from within. This extended treatment combines ancient healing techniques with modern therapies to restore vitality, promote hair growth, and release deep-seated tension.',
+    duration: '120 min',
+    price: '355',
+    description: 'An extended head spa experience with deeper cleansing, hydration, and a rejuvenating custom facial for complete renewal from scalp to skin.',
     features: [
-      'Welcome ritual & scalp health check',
-      'Essential oil ritual & warm head, neck, shoulders oil massage',
+      'Signature welcoming ritual',
+      'Aromatherapy relaxation with warm oil scalp, neck & shoulder massage',
       'Soothing scalp exfoliation',
-      'Sensory deep hair cleanse & scalp massage',
-      'Floral warm hair growth drip',
-      'Scalp conditioner & firming facial massage',
-      'Halo Water therapy (waterfall head bath)',
-      'Extended scalp massage',
+      'Blissful therapeutic scalp massage',
+      'Sensory deep hair cleanse',
+      'Nourishing scalp conditioner with firming facial massage',
+      'Halo water therapy with scalp massage',
       'Hydrating steam therapy & deep moisture hair treatment',
-      'Tension-relieving head, neck, shoulders & arms massage',
-      'Cooling Gua Sha therapy',
-      'Hot towel therapy',
+      'Tension-relieving head, neck, shoulders & arm massage',
+      'Hydrating leave-in serum',
+      'Luxurious hot towel therapy',
+      'Rejuvenating custom facial',
+      'Facial lymphatic drainage massage',
+      'Cooling ice globes therapy',
+      'Youth-renewal eye mask',
       'Gentle dry-off',
-      'Ayurvedic tea & dessert'
+      'Ayurvedic tea & artisanal dessert'
     ],
     featured: true,
-    image: '/images/scalp-health2.png',
-    bestFor: ['Hair growth', 'Deep tension relief', 'Complete renewal'],
+    image: '/images/scalp-health.png',
+    bestFor: ['Full reset', 'Deep tension relief', 'Skin + scalp renewal'],
     groupPricing: [
-      { size: 'Single Session', price: '260' },
-      { size: 'Package of 3', price: '735', discount: 'Save $45' },
-      { size: 'Package of 5', price: '1170', discount: 'Save $130' }
+      { size: 'Single Session', price: '355' },
+      { size: 'Package of 3', price: '960', discount: 'Save $105' },
+      { size: 'Package of 5', price: '1510', discount: 'Save $265' }
     ]
   },
   {
     id: 'premium-serenity-ritual',
     name: 'Premium Serenity Ritual',
-    duration: '120 min',
-    price: '340',
-    description: 'Our signature luxury experience — a multisensory healing journey that harmonizes body, mind, and spirit. This comprehensive ritual combines cutting-edge AI scalp analysis, advanced facial treatments, and therapeutic bodywork for the ultimate in holistic wellness and rejuvenation.',
+    duration: '150 min',
+    price: '410',
+    description: 'Our most indulgent ritual combining advanced scalp therapy, hot stone bodywork, facial sculpting, and restorative treatments for full-body serenity.',
     features: [
-      'Welcome essential oil ritual & aroma foot soak',
-      'Comprehensive AI scalp & skin analysis',
-      'Warm oil therapy & acupressure point scalp massage',
-      'Detoxifying gentle exfoliating scalp treatment',
+      'Welcome essential oil ritual with aromatic foot soak',
+      'Warm oil therapy with acupressure scalp massage',
+      'Hot stone upper-body massage',
+      'Soothing facial reflexology',
+      'Gentle detoxifying scalp exfoliation',
       'Double shampoo cleanse with signature massage',
-      'Soothing waterfall rinse',
       'Nourishing serum & conditioning hair treatment',
-      'Rejuvenating custom facial',
-      'Grounding neck, shoulders & arm massage',
-      'Soothing upper body massage & face reflexology',
-      'Meridian Gua Sha massage',
-      'Shoulder & neck relaxation therapy',
-      'Facial lymphatic massage & face sculpt',
-      'Youth renewal eye mask',
-      'Hydrating steam therapy & nourishing hair mask',
+      'Shoulder, neck & arm relaxation therapy',
+      'Floral warm hair-growth drip',
+      'Soothing waterfall rinse',
+      'Hydrating steam therapy with nourishing hair mask',
       'Leave-in restorative conditioner',
-      'Foot reflexology massage',
-      'Gentle dry-off or blow dry',
-      'Post-treatment beverage & dessert'
+      'Rejuvenating custom facial',
+      'Facial lymphatic massage & sculpting therapy',
+      'Youth-renewal eye mask',
+      'Meridian Gua Sha massage',
+      'Revitalising foot reflexology',
+      'Gentle dry-off or professional blow-dry',
+      'Post-treatment beverage & artisanal dessert'
     ],
     featured: true,
     image: '/images/la-masion-relax-lounge.png',
     bestFor: ['Ultimate luxury', 'Complete transformation', 'Special occasions'],
     groupPricing: [
-      { size: 'Single Session', price: '340' },
-      { size: 'Package of 3', price: '969', discount: 'Save $51' },
-      { size: 'Package of 5', price: '1530', discount: 'Save $170' }
+      { size: 'Single Session', price: '410' },
+      { size: 'Package of 3', price: '1110', discount: 'Save $120' },
+      { size: 'Package of 5', price: '1745', discount: 'Save $305' }
     ]
   },
   {
     id: 'prenatal-blossom-ritual',
     name: 'Prenatal Blossom Ritual',
-    duration: '60 min',
-    price: '185',
-    description: 'A gentle, nurturing treatment designed exclusively for expectant mothers. Using pregnancy-safe products and specialized techniques, this soothing ritual relieves stress, enhances circulation, and promotes scalp health while providing the care and comfort you deserve during this special time. Adjustable support and positioning ensure complete relaxation.',
+    duration: '75 min',
+    price: '250',
+    description: 'A gentle, pregnancy-safe head spa ritual designed for comfort, hydration, and relaxation with supportive positioning and nurturing massage.',
     features: [
-      'Welcome ritual',
-      'Gentle scalp exfoliation (optional)',
-      'Deep double cleanse',
-      'Pregnancy-safe scalp massage & relaxing techniques',
-      'Waterfall therapy',
-      'Face, neck & shoulders massage',
-      'Nourishing & repairing hair treatment',
-      'Gentle foot massage',
-      'Adjustable lower back support',
+      'Signature welcome ritual',
+      'Indulgent face, neck, shoulders & arms massage',
+      'Pregnancy-safe warm oil scalp massage',
+      'Personalised comfort with adjustable lower-back support',
+      'Optional purifying scalp exfoliation',
+      'Deep hydrating double cleanse',
+      'Signature waterfall therapy with scalp massage',
+      'Nourishing, restorative hair treatment',
+      'Luxurious hot towel therapy',
+      'Hydrating leave-in serum',
+      'Revitalising foot reflexology',
       'Gentle dry-off',
-      'Herbal tea & light refreshment'
+      'Curated/natural herbal tea & light refreshment'
     ],
     image: '/images/stress-relief.png',
     bestFor: ['Expectant mothers', 'Stress relief', 'Safe relaxation'],
     groupPricing: [
-      { size: 'Single Session', price: '185' },
-      { size: 'Package of 3', price: '525', discount: 'Save $30' }
+      { size: 'Single Session', price: '250' },
+      { size: 'Package of 3', price: '675', discount: 'Save $75' },
+      { size: 'Package of 5', price: '1065', discount: 'Save $185' }
     ]
   },
 ];
