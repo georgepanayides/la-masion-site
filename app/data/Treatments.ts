@@ -119,7 +119,7 @@ export const treatments: Treatment[] = [
       'Ayurvedic tea & artisanal dessert'
     ],
     featured: true,
-    image: '/images/scalp-health.png',
+    image: '/images/treatments-hero.png',
     bestFor: ['Full reset', 'Deep tension relief', 'Skin + scalp renewal'],
     groupPricing: [
       { size: 'Single Session', price: '355' },
@@ -155,7 +155,7 @@ export const treatments: Treatment[] = [
       'Post-treatment beverage & artisanal dessert'
     ],
     featured: true,
-    image: '/images/la-masion-relax-lounge.png',
+    image: '/images/treatment-2.png',
     bestFor: ['Ultimate luxury', 'Complete transformation', 'Special occasions'],
     groupPricing: [
       { size: 'Single Session', price: '410' },

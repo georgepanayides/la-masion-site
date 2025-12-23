@@ -108,13 +108,13 @@ export default function FAQ() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a 
-              href="tel:+61XXXXXXXXX"
+              href="tel:+61753388715"
               className="inline-flex items-center gap-2 px-6 py-3 border border-stone-800/20 text-stone-grey text-xs uppercase tracking-widest hover:border-stone hover:text-stone transition-all duration-300"
             >
               Call Us
             </a>
             <a 
-              href="mailto:hello@lamaisonde.com.au"
+              href="mailto:lamaisondeaesthetics@gmail.com"
               className="inline-flex items-center gap-2 px-6 py-3 bg-stone text-warm-white text-xs uppercase tracking-widest hover:bg-stone-grey transition-all duration-300"
             >
               Email Us

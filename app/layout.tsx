@@ -4,6 +4,7 @@ import "./globals.css";
 import Banner from "@/components/banner/Banner";
 import Header from "@/components/header/Header";
 import Footer from "@/components/footer/Footer";
+import MobileCallButton from "@/components/ui/MobileCallButton";
 
 const brandSans = Inter({
   variable: "--font-brand-sans",
@@ -43,6 +44,7 @@ export default function RootLayout({
         <Header/>
         {children}
         <Footer />
+        <MobileCallButton />
       </body>
     </html>
   );

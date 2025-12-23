@@ -3,25 +3,25 @@ import { FaHeartbeat, FaCertificate, FaShieldAlt, FaStar } from 'react-icons/fa'
 export default function Testimonials() {
   const testimonials = [
     {
-      quote: "The most relaxing experience I've ever had. My scalp feels completely renewed and my hair has never looked better. I leave feeling like a different person.",
-      author: "Sarah M.",
-      location: "Noosa Heads",
+      quote: "A very lovely salon with a wonderful atmosphere, skilled professionals, and truly high European quality. I had a body scrub and a wrap — it was both relaxing and beneficial. I recommended it to friends straight away.",
+      author: "Anna BVCampus",
+      location: "Google Review",
       rating: 5,
-      treatment: "Signature Head Spa"
+      treatment: "Body scrub & wrap"
     },
     {
-      quote: "Professional, luxurious, and genuinely therapeutic. The team knows exactly what they're doing. I've had chronic tension headaches for years—this is the only thing that helps.",
-      author: "Michael T.",
-      location: "Mooloolaba",
+      quote: "I had an aroma massage at La Maison De Aesthetics and it was amazing. The salon is beautiful, elegant, and feels very European in style. The atmosphere is luxury and relaxing — everything is designed to make you feel comfortable.",
+      author: "Natalie Maro",
+      location: "Google Review",
       rating: 5,
-      treatment: "Deep Renewal"
+      treatment: "Aroma massage"
     },
     {
-      quote: "Incredible attention to detail and such a serene space. I book this monthly as self-care and it's become essential to my wellness routine. Worth every cent.",
-      author: "Emma L.",
-      location: "Caloundra",
+      quote: "Hands down the best spa experience I have ever had. A welcoming and calm environment from the moment you walk in. The Japanese head spa experience was amazing — relaxing, intentional, and exactly what we needed.",
+      author: "Lisa Lanesbury",
+      location: "Google Review",
       rating: 5,
-      treatment: "Signature Head Spa"
+      treatment: "Japanese head spa"
     },
   ];
 
@@ -75,7 +75,7 @@ export default function Testimonials() {
             <span className="text-sm font-light text-stone-grey">5.0</span>
           </div>
           <p className="text-xs uppercase tracking-wider text-stone-grey/70">
-            Based on 127+ Google Reviews
+            Based on Google Reviews
           </p>
         </div>
 
@@ -142,7 +142,7 @@ export default function Testimonials() {
         {/* CTA to Reviews */}
         <div className="mt-12 text-center">
           <a 
-            href="https://g.page/r/YOUR_GOOGLE_PLACE_ID/review"
+            href="https://share.google/rJDd4fPNDCvnRBVWG"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-6 py-3 border border-stone-800/20 text-stone-grey text-xs uppercase tracking-widest hover:border-driftwood hover:text-driftwood transition-all duration-300"

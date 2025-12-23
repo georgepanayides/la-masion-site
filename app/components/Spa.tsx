@@ -11,13 +11,13 @@ export default function Spa() {
     {
       title: 'The Space',
       desc: 'A serene, minimal sanctuary designed for renewal. Every detail curated to enhance your wellness journey.',
-      image: '/images/la-masion-relax-lounge.png',
+      image: '/images/IMG_8615.jpeg',
       alt: 'Treatment room interior'
     },
     {
       title: 'Our Equipment',
       desc: 'State-of-the-art tools and premium products. Professional-grade technology meets traditional techniques.',
-      image: '/images/la-masion-stock.png',
+      image: '/images/5C07EFDC-4F29-4D4D-99B1-769A70BCAA01.jpeg',
       alt: 'Japanese head spa equipment'
     },
   ];

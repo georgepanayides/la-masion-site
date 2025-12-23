@@ -20,7 +20,7 @@ export default function Hero() {
         <p className="max-w-3xl text-cream text-xs md:text-sm tracking-wide uppercase mb-6">Japanese Head Spa — Sunshine Coast</p>
         <div className="flex gap-4 flex-wrap justify-center">
           <Link href="/treatments" className="inline-flex items-center justify-center gap-2 px-8 py-3 border border-stone bg-rice-paper text-stone-800 text-xs uppercase tracking-widest hover:bg-rice-paper/90 transition min-w-[180px]">View Treatments</Link>
-          <a href="#gift-cards" className="inline-flex items-center justify-center gap-2 px-8 py-3 border border-rice-paper/40 text-rice-paper text-xs uppercase tracking-widest hover:bg-stone-800/20 transition min-w-[180px]">Gift Experience</a>
+          <a href="https://www.lamaisondeaesthetics.com/store-2" className="inline-flex items-center justify-center gap-2 px-8 py-3 border border-rice-paper/40 text-rice-paper text-xs uppercase tracking-widest hover:bg-stone-800/20 transition min-w-[180px]">Gift Experience</a>
         </div>
       </div>
     </section>

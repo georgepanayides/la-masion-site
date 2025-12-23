@@ -4,14 +4,11 @@ import Image from "next/image";
 
 export default function SpaceGallery() {
   const images = [
-    { src: '/images/la-masion-receiption.png', alt: 'Reception area' },
-    { src: '/images/la-masion-receiption.png', alt: 'Main treatment room' },
-    { src: '/images/la-masion-receiption.png', alt: 'Product display' },
-    { src: '/images/la-masion-receiption.png', alt: 'Entrance hallway' },
-    { src: '/images/la-masion-receiption.png', alt: 'Treatment space' },
-    { src: '/images/la-masion-receiption.png', alt: 'Interior detail' },
-    { src: '/images/la-masion-receiption.png', alt: 'Relaxation lounge' },
-    { src: '/images/la-masion-receiption.png', alt: 'Ambient lighting' },
+    { src: "/images/IMG_8615.jpeg", alt: "Reception" },
+    { src: "/images/53A6451C-53DB-4703-9C30-E9CA23A1112E.jpeg", alt: "Treatment room" },
+    { src: "/images/IMG_8758.jpeg", alt: "Treatment space" },
+    { src: "/images/5C07EFDC-4F29-4D4D-99B1-769A70BCAA01.jpeg ", alt: "Head Spa Machines" },
+    { src: "/images/IMG_8765.jpeg", alt: "Japanese Headspa Room" },
   ];
 
   return (
