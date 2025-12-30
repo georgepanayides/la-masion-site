@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import Banner from "@/components/banner/Banner";
 import Header from "@/components/header/Header";
@@ -36,9 +37,29 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const googleAdsId = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
+
   return (
     <html lang="en">
       <body className={`${brandSans.variable} ${brandSerif.variable} ${geistMono.variable} antialiased`}>
+        {googleAdsId ? (
+          <>
+            <Script
+              async
+              src={`https://www.googletagmanager.com/gtag/js?id=${googleAdsId}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-ads-gtag" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                window.gtag = window.gtag || gtag;
+                gtag('js', new Date());
+                gtag('config', '${googleAdsId}');
+              `}
+            </Script>
+          </>
+        ) : null}
         <a href="#main-content" className="sr-only focus:not-sr-only focus:translate-y-0 focus:opacity-100 block m-4 p-2 bg-white rounded-md border border-gray-200 z-50">Skip to main content</a>
         <Banner/>
         <Header/>

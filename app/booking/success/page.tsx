@@ -23,6 +23,12 @@ type BookingDraft = {
   addonNames: string[];
 };
 
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+  }
+}
+
 export default function BookingSuccessPage() {
   const [mounted, setMounted] = useState(false);
   const [draft, setDraft] = useState<BookingDraft | null>(null);
@@ -50,6 +56,40 @@ export default function BookingSuccessPage() {
     setSquareBookingId(draft.squareBookingId);
     setAppointmentStatus("created");
   }, [draft?.squareBookingId]);
+
+  useEffect(() => {
+    if (!mounted) return;
+    if (!draft) return;
+
+    const googleAdsId = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
+    const conversionLabel = process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LABEL;
+    if (!googleAdsId || !conversionLabel) return;
+    if (typeof window === "undefined") return;
+    if (typeof window.gtag !== "function") return;
+
+    const transactionId = (draft.orderId ?? draft.bookingId ?? "").trim();
+    const firedKey = `ads_conversion_fired_${googleAdsId}_${conversionLabel}_${transactionId || "no_tx"}`;
+    try {
+      if (sessionStorage.getItem(firedKey) === "1") return;
+    } catch {
+      // ignore
+    }
+
+    const value = Number.isFinite(draft.depositDollars) ? draft.depositDollars : draft.totalDollars;
+    const payload: Record<string, unknown> = {
+      send_to: `${googleAdsId}/${conversionLabel}`,
+      value,
+      currency: "AUD",
+    };
+    if (transactionId) payload.transaction_id = transactionId;
+
+    window.gtag("event", "conversion", payload);
+    try {
+      sessionStorage.setItem(firedKey, "1");
+    } catch {
+      // ignore
+    }
+  }, [draft, mounted]);
 
   useEffect(() => {
     if (!mounted) return;
