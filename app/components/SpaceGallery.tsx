@@ -3,12 +3,26 @@
 import Image from "next/image";
 
 export default function SpaceGallery() {
-  const images = [
-    { src: "/images/IMG_8615.jpeg", alt: "Reception" },
-    { src: "/images/53A6451C-53DB-4703-9C30-E9CA23A1112E.jpeg", alt: "Treatment room" },
-    { src: "/images/IMG_8758.jpeg", alt: "Treatment space" },
-    { src: "/images/5C07EFDC-4F29-4D4D-99B1-769A70BCAA01.jpeg ", alt: "Head Spa Machines" },
-    { src: "/images/IMG_8765.jpeg", alt: "Japanese Headspa Room" },
+  type GalleryItem =
+    | { type: "video"; src: string; alt: string }
+    | { type: "image"; src: string; alt: string };
+
+  const items: GalleryItem[] = [
+    {
+      type: "video",
+      src: "/videos/copy_606F9E53-E292-4AA9-9C7D-B6555EF92418.mp4",
+      alt: "The Space — video",
+    },
+    {
+      type: "video",
+      src: "/videos/copy_F7D4DB6F-EAFB-487F-97F4-86045EFC8266.mp4",
+      alt: "Treatment space — video",
+    },
+    { type: "image", src: "/images/IMG_8615.jpeg", alt: "Reception" },
+    { type: "image", src: "/images/53A6451C-53DB-4703-9C30-E9CA23A1112E.jpeg", alt: "Treatment room" },
+    { type: "image", src: "/images/IMG_8758.jpeg", alt: "Treatment space" },
+    { type: "image", src: "/images/5C07EFDC-4F29-4D4D-99B1-769A70BCAA01.jpeg", alt: "Head Spa Machines" },
+    { type: "image", src: "/images/IMG_8765.jpeg", alt: "Japanese Headspa Room" },
   ];
 
   return (
@@ -35,19 +49,32 @@ export default function SpaceGallery() {
         <div 
           className="flex gap-6 overflow-x-auto scrollbar-hide px-6 md:px-8 py-8 snap-x snap-mandatory scroll-smooth"
         >
-          {images.map((image, idx) => (
+          {items.map((item, idx) => (
             <div
               key={idx}
               className="flex-shrink-0 snap-center w-[75vw] md:w-[45vw] lg:w-[30vw] group"
             >
               <div className="relative aspect-[3/4] overflow-hidden bg-stone-800/20">
-                <Image
-                  src={image.src}
-                  alt={image.alt}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  sizes="(max-width: 768px) 75vw, (max-width: 1024px) 45vw, 30vw"
-                />
+                {item.type === "video" ? (
+                  <video
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    src={item.src}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    aria-label={item.alt}
+                  />
+                ) : (
+                  <Image
+                    src={item.src}
+                    alt={item.alt}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    sizes="(max-width: 768px) 75vw, (max-width: 1024px) 45vw, 30vw"
+                  />
+                )}
                 
                 {/* Hover overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-sumi-ink/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -55,7 +82,7 @@ export default function SpaceGallery() {
                 {/* Image label on hover */}
                 <div className="absolute bottom-0 left-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                   <p className="text-xs uppercase tracking-widest text-warm-white">
-                    {image.alt}
+                    {item.alt}
                   </p>
                 </div>
               </div>

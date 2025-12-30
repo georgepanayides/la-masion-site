@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { bookingAddOns, treatments } from "../data/Treatments";
@@ -23,6 +23,9 @@ interface FormData {
 
 function BookingPanelContent({ initialServiceId }: { initialServiceId: string }) {
   const [currentStep, setCurrentStep] = useState<Step>("service");
+  const [isPaying, setIsPaying] = useState(false);
+  const [paymentError, setPaymentError] = useState<string>("");
+  const [now, setNow] = useState<Date>(() => new Date());
   const [formData, setFormData] = useState<FormData>({
     service: initialServiceId,
     addon: [],
@@ -42,6 +45,72 @@ function BookingPanelContent({ initialServiceId }: { initialServiceId: string })
     '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'
   ];
 
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setNow(new Date());
+    }, 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  function isSameLocalDay(dateIso: string, current: Date): boolean {
+    const parts = dateIso.split('-').map((p) => Number(p));
+    if (parts.length !== 3) return false;
+    const [year, month, day] = parts;
+    if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return false;
+    return (
+      current.getFullYear() === year &&
+      current.getMonth() + 1 === month &&
+      current.getDate() === day
+    );
+  }
+
+  function parseTimeLabelToMinutes(label: string): number | null {
+    const match = label.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!match) return null;
+    const hourRaw = Number(match[1]);
+    const minute = Number(match[2]);
+    const meridiem = match[3].toUpperCase();
+    if (!Number.isFinite(hourRaw) || !Number.isFinite(minute)) return null;
+    if (hourRaw < 1 || hourRaw > 12) return null;
+    if (minute < 0 || minute > 59) return null;
+
+    const hour = (hourRaw % 12) + (meridiem === 'PM' ? 12 : 0);
+    return hour * 60 + minute;
+  }
+
+  function isTimeSlotInPastForSelectedDate(label: string): boolean {
+    if (!formData.date) return false;
+    if (!isSameLocalDay(formData.date, now)) return false;
+    const slotMinutes = parseTimeLabelToMinutes(label);
+    if (slotMinutes === null) return false;
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    return slotMinutes < currentMinutes;
+  }
+
+  useEffect(() => {
+    setFormData((prev) => {
+      if (!prev.date || !prev.time) return prev;
+      const parts = prev.date.split('-').map((p) => Number(p));
+      if (parts.length !== 3) return prev;
+      const [year, month, day] = parts;
+      if (
+        now.getFullYear() !== year ||
+        now.getMonth() + 1 !== month ||
+        now.getDate() !== day
+      ) {
+        return prev;
+      }
+
+      const selectedMinutes = parseTimeLabelToMinutes(prev.time);
+      if (selectedMinutes === null) return prev;
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      if (selectedMinutes < currentMinutes) {
+        return { ...prev, time: '' };
+      }
+      return prev;
+    });
+  }, [now]);
+
   const handleServiceSelect = (serviceId: string) => {
     setFormData({ ...formData, service: serviceId });
   };
@@ -56,9 +125,81 @@ function BookingPanelContent({ initialServiceId }: { initialServiceId: string })
   const handleNext = () => {
     if (currentStep === 'service' && formData.service) setCurrentStep('datetime');
     else if (currentStep === 'datetime' && formData.date && formData.time) setCurrentStep('details');
-    else if (currentStep === 'details' && formData.firstName && formData.lastName && formData.email && formData.phone) {
-      // Submit booking
-      setCurrentStep('confirmation');
+  };
+
+  const handlePayDeposit = async () => {
+    if (!selectedService) return;
+    if (!formData.date || !formData.time) return;
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone) return;
+
+    setPaymentError("");
+    setIsPaying(true);
+
+    try {
+      const response = await fetch("/api/square/deposit-link", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          serviceId: formData.service,
+          addonIds: formData.addon,
+          date: formData.date,
+          time: formData.time,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          notes: formData.notes,
+        }),
+      });
+
+      const data = (await response.json()) as
+        | {
+            ok: true;
+            url: string;
+            paymentLinkId: string | null;
+            orderId: string | null;
+            depositCents: number;
+            totalDollars: number;
+            serviceName: string;
+            bookingId: string;
+          }
+        | { ok: false; error: string };
+
+      if (!response.ok || !data.ok) {
+        throw new Error((data as { ok: false; error: string }).error || "Payment setup failed");
+      }
+
+      const depositDollars = data.depositCents / 100;
+
+      sessionStorage.setItem(
+        "bookingDraft",
+        JSON.stringify({
+          bookingId: data.bookingId,
+          paymentLinkId: data.paymentLinkId,
+          orderId: data.orderId,
+          serviceId: formData.service,
+          addonIds: formData.addon,
+          date: formData.date,
+          time: formData.time,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          notes: formData.notes,
+          totalDollars: data.totalDollars,
+          depositDollars,
+          serviceName: data.serviceName,
+          addonNames: selectedAddons.map((a) => a.name),
+        }),
+      );
+
+      window.location.assign(data.url);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unexpected payment error";
+      setPaymentError(message);
+      setIsPaying(false);
     }
   };
 
@@ -77,6 +218,11 @@ function BookingPanelContent({ initialServiceId }: { initialServiceId: string })
   const selectedService = treatments.find(t => t.id === formData.service);
   const selectedAddons = addons.filter(a => formData.addon.includes(a.id));
   const totalPrice = (selectedService ? parseInt(selectedService.price) : 0) + selectedAddons.reduce((sum, a) => sum + a.price, 0);
+  const forcedDepositCentsRaw = process.env.NEXT_PUBLIC_FORCE_DEPOSIT_CENTS;
+  const forcedDepositCents = forcedDepositCentsRaw ? Number(forcedDepositCentsRaw) : NaN;
+  const depositPreview = Number.isFinite(forcedDepositCents)
+    ? (forcedDepositCents / 100).toFixed(2)
+    : (Math.round(totalPrice * 20) / 100).toFixed(2);
 
   return (
     <section id="booking" className="relative py-16 md:py-24 bg-warm-white">
@@ -242,11 +388,17 @@ function BookingPanelContent({ initialServiceId }: { initialServiceId: string })
                     {timeSlots.map((time) => (
                       <button
                         key={time}
-                        onClick={() => setFormData({ ...formData, time })}
+                        disabled={isTimeSlotInPastForSelectedDate(time)}
+                        onClick={() => {
+                          if (isTimeSlotInPastForSelectedDate(time)) return;
+                          setFormData({ ...formData, time });
+                        }}
                         className={`p-3 text-xs uppercase tracking-wider border transition-all ${
-                          formData.time === time
-                            ? 'border-stone bg-stone text-warm-white'
-                            : 'border-stone-800/12 bg-warm-white text-stone-grey hover:border-stone-800/25'
+                          isTimeSlotInPastForSelectedDate(time)
+                            ? 'border-stone-800/12 bg-warm-white text-stone-grey/40 opacity-60 cursor-not-allowed'
+                            : formData.time === time
+                              ? 'border-stone bg-stone text-warm-white'
+                              : 'border-stone-800/12 bg-warm-white text-stone-grey hover:border-stone-800/25'
                         }`}
                       >
                         {time}
@@ -330,6 +482,18 @@ function BookingPanelContent({ initialServiceId }: { initialServiceId: string })
                   placeholder="Any allergies, preferences, or concerns we should know about?"
                 />
               </div>
+
+              <div className="bg-warm-white border border-stone-800/12 p-4 text-left">
+                <p className="text-xs text-stone-grey">
+                  A <span className="text-sumi-ink">20% deposit (${depositPreview})</span> is required to secure your booking.
+                </p>
+              </div>
+
+              {paymentError && (
+                <div className="border border-red-500/30 bg-red-500/5 p-4 text-left">
+                  <p className="text-xs text-red-800">{paymentError}</p>
+                </div>
+              )}
             </div>
           )}
 
@@ -410,15 +574,15 @@ function BookingPanelContent({ initialServiceId }: { initialServiceId: string })
               )}
               
               <button
-                onClick={handleNext}
-                disabled={!canProceed()}
+                onClick={currentStep === 'details' ? handlePayDeposit : handleNext}
+                disabled={!canProceed() || isPaying}
                 className={`ml-auto px-6 py-3 text-xs uppercase tracking-widest transition-all ${
-                  canProceed()
+                  canProceed() && !isPaying
                     ? 'bg-stone text-warm-white hover:bg-stone-grey'
                     : 'bg-stone-800/12 text-stone-grey/50 cursor-not-allowed'
                 }`}
               >
-                {currentStep === 'details' ? 'Confirm Booking' : 'Continue'}
+                {currentStep === 'details' ? (isPaying ? 'Redirecting…' : 'Pay 20% Deposit') : 'Continue'}
               </button>
             </div>
           )}
@@ -442,6 +606,12 @@ function BookingPanelContent({ initialServiceId }: { initialServiceId: string })
                   <span className="text-sumi-ink uppercase tracking-wider text-xs">Total</span>
                   <span className="text-stone">${totalPrice}</span>
                 </div>
+                {currentStep === 'details' && (
+                  <div className="flex justify-between text-xs pt-3 border-t border-stone-800/12">
+                    <span className="text-stone-grey uppercase tracking-wider">Deposit Today</span>
+                    <span className="text-sumi-ink">${depositPreview}</span>
+                  </div>
+                )}
               </div>
             </div>
           )}
