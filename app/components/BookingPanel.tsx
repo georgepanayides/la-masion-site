@@ -26,6 +26,7 @@ function BookingPanelContent({ initialServiceId }: { initialServiceId: string })
   const [isPaying, setIsPaying] = useState(false);
   const [paymentError, setPaymentError] = useState<string>("");
   const [now, setNow] = useState<Date>(() => new Date());
+  const [blockedTimes, setBlockedTimes] = useState<string[]>([]);
   const [formData, setFormData] = useState<FormData>({
     service: initialServiceId,
     addon: [],
@@ -51,6 +52,42 @@ function BookingPanelContent({ initialServiceId }: { initialServiceId: string })
     }, 60_000);
     return () => window.clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    if (currentStep !== "datetime") return;
+    if (!formData.date || !formData.service) {
+      setBlockedTimes([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        const url = new URL("/api/square/appointments/availability", window.location.origin);
+        url.searchParams.set("date", formData.date);
+        url.searchParams.set("serviceId", formData.service);
+
+        const res = await fetch(url.toString(), { method: "GET" });
+        const data = (await res.json()) as { ok: true; blockedTimes: string[] } | { ok: false; error: string };
+
+        if (!res.ok || !data.ok) {
+          throw new Error((data as { ok: false; error: string }).error || "Failed to load availability");
+        }
+
+        if (cancelled) return;
+        setBlockedTimes((data as { ok: true; blockedTimes: string[] }).blockedTimes);
+      } catch {
+        if (cancelled) return;
+        setBlockedTimes([]);
+      }
+    };
+
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [currentStep, formData.date, formData.service]);
 
   function isSameLocalDay(dateIso: string, current: Date): boolean {
     const parts = dateIso.split('-').map((p) => Number(p));
@@ -87,6 +124,12 @@ function BookingPanelContent({ initialServiceId }: { initialServiceId: string })
     return slotMinutes < currentMinutes;
   }
 
+  function isTimeSlotUnavailable(label: string): boolean {
+    if (blockedTimes.includes(label)) return true;
+    if (isTimeSlotInPastForSelectedDate(label)) return true;
+    return false;
+  }
+
   useEffect(() => {
     setFormData((prev) => {
       if (!prev.date || !prev.time) return prev;
@@ -110,6 +153,18 @@ function BookingPanelContent({ initialServiceId }: { initialServiceId: string })
       return prev;
     });
   }, [now]);
+
+  useEffect(() => {
+    setFormData((prev) => {
+      if (!prev.time) return prev;
+      if (!prev.date) return prev;
+      if (isTimeSlotUnavailable(prev.time)) {
+        return { ...prev, time: '' };
+      }
+      return prev;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blockedTimes, formData.date]);
 
   const handleServiceSelect = (serviceId: string) => {
     setFormData({ ...formData, service: serviceId });
@@ -388,13 +443,13 @@ function BookingPanelContent({ initialServiceId }: { initialServiceId: string })
                     {timeSlots.map((time) => (
                       <button
                         key={time}
-                        disabled={isTimeSlotInPastForSelectedDate(time)}
+                        disabled={isTimeSlotUnavailable(time)}
                         onClick={() => {
-                          if (isTimeSlotInPastForSelectedDate(time)) return;
+                          if (isTimeSlotUnavailable(time)) return;
                           setFormData({ ...formData, time });
                         }}
                         className={`p-3 text-xs uppercase tracking-wider border transition-all ${
-                          isTimeSlotInPastForSelectedDate(time)
+                          isTimeSlotUnavailable(time)
                             ? 'border-stone-800/12 bg-warm-white text-stone-grey/40 opacity-60 cursor-not-allowed'
                             : formData.time === time
                               ? 'border-stone bg-stone text-warm-white'

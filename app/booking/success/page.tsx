@@ -25,13 +25,14 @@ type BookingDraft = {
 
 declare global {
   interface Window {
-    gtag?: (...args: any[]) => void;
+    gtag?: (...args: unknown[]) => void;
   }
 }
 
 export default function BookingSuccessPage() {
   const [mounted, setMounted] = useState(false);
   const [draft, setDraft] = useState<BookingDraft | null>(null);
+  const [gtagReady, setGtagReady] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -65,7 +66,7 @@ export default function BookingSuccessPage() {
     const conversionLabel = process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LABEL;
     if (!googleAdsId || !conversionLabel) return;
     if (typeof window === "undefined") return;
-    if (typeof window.gtag !== "function") return;
+    if (!gtagReady || typeof window.gtag !== "function") return;
 
     const transactionId = (draft.orderId ?? draft.bookingId ?? "").trim();
     const firedKey = `ads_conversion_fired_${googleAdsId}_${conversionLabel}_${transactionId || "no_tx"}`;
@@ -89,7 +90,7 @@ export default function BookingSuccessPage() {
     } catch {
       // ignore
     }
-  }, [draft, mounted]);
+  }, [draft, mounted, gtagReady]);
 
   useEffect(() => {
     if (!mounted) return;
