@@ -71,7 +71,12 @@ function BookingSuccessContent() {
       ? (Number.isFinite(draft.depositDollars) ? draft.depositDollars : draft.totalDollars)
       : 1.0;
       
-    const transactionId = (draft?.orderId ?? draft?.bookingId ?? searchParams.get("transactionId") ?? searchParams.get("orderId") ?? "").trim();
+    let transactionId = (draft?.orderId ?? draft?.bookingId ?? searchParams.get("transactionId") ?? searchParams.get("orderId") ?? "").trim();
+    
+    // Fallback transaction ID to prevent Google Ads errors if missing
+    if (!transactionId) {
+      transactionId = `fallback_${Date.now()}`;
+    }
 
     // Ensure gtag is available
     window.dataLayer = window.dataLayer || [];
@@ -79,11 +84,10 @@ function BookingSuccessContent() {
       window.dataLayer!.push(args);
     }
 
-    gtag("event", "conversion", {
-      send_to: "AW-17841375498",
+    gtag("event", "purchase", {
+      transaction_id: transactionId,
       value: value,
       currency: "AUD",
-      transaction_id: transactionId,
     });
   }, [draft, isDraftLoaded, searchParams]);
 
