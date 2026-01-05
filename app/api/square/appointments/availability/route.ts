@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { DateTime } from "luxon";
 
 import { treatments } from "@/app/data/Treatments";
-import { getSquareClient } from "@/app/lib/square";
+import { getSquareClient, resolveTeamMemberId } from "@/app/lib/square";
 
 async function resolveSquareLocationId(client: ReturnType<typeof getSquareClient>): Promise<string> {
   const configured = process.env.SQUARE_LOCATION_ID;
@@ -18,26 +18,7 @@ async function resolveSquareLocationId(client: ReturnType<typeof getSquareClient
   return resolved;
 }
 
-async function resolveTeamMemberId(params: {
-  client: ReturnType<typeof getSquareClient>;
-  locationId: string;
-}): Promise<string> {
-  const configured = (process.env.SQUARE_DEFAULT_TEAM_MEMBER_ID ?? "").trim();
-  if (configured) return configured;
-
-  const profilesPage = await params.client.bookings.teamMemberProfiles.list({
-    locationId: params.locationId,
-    bookableOnly: true,
-    limit: 100,
-  });
-
-  for await (const profile of profilesPage) {
-    const id = profile.teamMemberId;
-    if (id) return id;
-  }
-
-  throw new Error("No bookable team members found for this location");
-}
+// resolveTeamMemberId moved to app/lib/square.ts
 
 function parseMinutes(durationLabel: string): number {
   const match = durationLabel.match(/(\d+)/);
@@ -99,7 +80,7 @@ export async function GET(req: Request) {
     const location = (await client.locations.list()).locations?.find((l) => l.id === locationId);
     const timezone = location?.timezone ?? "UTC";
 
-    const teamMemberId = await resolveTeamMemberId({ client, locationId });
+    const teamMemberId = await resolveTeamMemberId(client, locationId);
 
     const dayStart = DateTime.fromFormat(date, "yyyy-MM-dd", { zone: timezone }).startOf("day");
     if (!dayStart.isValid) {
