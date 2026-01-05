@@ -18,6 +18,11 @@ export default function SpaceGallery() {
       src: "/videos/copy_F7D4DB6F-EAFB-487F-97F4-86045EFC8266.mp4",
       alt: "Treatment space — video",
     },
+    {
+      type: "video",
+      src: "/videos/copy_97DB6F66-3EEB-4C3A-A57A-41C019EF40A9.mp4",
+      alt: "Boutique Treatment - Video",
+    },
     { type: "image", src: "/images/IMG_8615.jpeg", alt: "Reception" },
     { type: "image", src: "/images/53A6451C-53DB-4703-9C30-E9CA23A1112E.jpeg", alt: "Treatment room" },
     { type: "image", src: "/images/IMG_8758.jpeg", alt: "Treatment space" },
