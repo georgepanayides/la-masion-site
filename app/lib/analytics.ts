@@ -26,7 +26,7 @@ export const gtagReportConversion = (url: string) => {
   // Check if gtag is defined
   if (typeof window !== 'undefined' && window.gtag) {
     window.gtag('event', 'conversion', {
-      'send_to': 'AW-17841375498/OsynCKWfqN0bEIqSt7tC',
+      'send_to': 'AW-17841375498/F6NtCLD7rN0bEIqSt7tC',
       'value': 1.0,
       'currency': 'AUD',
       'event_callback': callback
