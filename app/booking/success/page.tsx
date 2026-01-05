@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 type BookingDraft = {
   bookingId?: string;
@@ -30,19 +31,24 @@ declare global {
   }
 }
 
-export default function BookingSuccessPage() {
+function BookingSuccessContent() {
   const [mounted, setMounted] = useState(false);
   const [draft, setDraft] = useState<BookingDraft | null>(null);
+  const [isDraftLoaded, setIsDraftLoaded] = useState(false);
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     setMounted(true);
     try {
       const raw = sessionStorage.getItem("bookingDraft");
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as BookingDraft;
-      setDraft(parsed);
+      if (raw) {
+        const parsed = JSON.parse(raw) as BookingDraft;
+        setDraft(parsed);
+      }
     } catch {
       // ignore
+    } finally {
+      setIsDraftLoaded(true);
     }
   }, []);
 
@@ -59,10 +65,13 @@ export default function BookingSuccessPage() {
   }, [draft?.squareBookingId]);
 
   useEffect(() => {
-    if (!mounted || !draft) return;
+    if (!isDraftLoaded) return;
 
-    const value = Number.isFinite(draft.depositDollars) ? draft.depositDollars : draft.totalDollars;
-    const transactionId = (draft.orderId ?? draft.bookingId ?? "").trim();
+    const value = draft 
+      ? (Number.isFinite(draft.depositDollars) ? draft.depositDollars : draft.totalDollars)
+      : 1.0;
+      
+    const transactionId = (draft?.orderId ?? draft?.bookingId ?? searchParams.get("transactionId") ?? searchParams.get("orderId") ?? "").trim();
 
     // Ensure gtag is available
     window.dataLayer = window.dataLayer || [];
@@ -71,12 +80,12 @@ export default function BookingSuccessPage() {
     }
 
     gtag("event", "conversion", {
-      send_to: "AW-17841375498/eD6uCLDo7NwbEIqSt7tC",
+      send_to: "AW-17841375498",
       value: value,
       currency: "AUD",
       transaction_id: transactionId,
     });
-  }, [draft, mounted]);
+  }, [draft, isDraftLoaded, searchParams]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -233,5 +242,13 @@ export default function BookingSuccessPage() {
         </div>
       </section>
     </main>
+  );
+}
+
+export default function BookingSuccessPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BookingSuccessContent />
+    </Suspense>
   );
 }
