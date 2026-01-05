@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { gtagReportConversion } from "../lib/analytics";
 
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
@@ -109,6 +110,10 @@ export default function FAQ() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a 
               href="tel:+61753388715"
+              onClick={(e) => {
+                e.preventDefault();
+                gtagReportConversion("tel:+61753388715");
+              }}
               className="inline-flex items-center gap-2 px-6 py-3 border border-stone-800/20 text-stone-grey text-xs uppercase tracking-widest hover:border-stone hover:text-stone transition-all duration-300"
             >
               Call Us

@@ -6,6 +6,7 @@ import Image from "next/image";
 import { bookingAddOns, treatments } from "../data/Treatments";
 import DatePicker from "../../components/ui/DatePicker";
 import PackageDisclaimer from "./ui/PackageDisclaimer";
+import { gtagReportConversion } from "../lib/analytics";
 
 type Step = 'service' | 'datetime' | 'details' | 'confirmation';
 
@@ -680,6 +681,10 @@ function BookingPanelContent({ initialServiceId }: { initialServiceId: string })
             </p>
             <a 
               href="tel:+61753388715"
+              onClick={(e) => {
+                e.preventDefault();
+                gtagReportConversion("tel:+61753388715");
+              }}
               className="inline-flex items-center gap-2 px-6 py-3 border border-stone-800/20 text-stone-grey text-xs uppercase tracking-widest hover:border-stone hover:text-stone transition-all duration-300"
             >
               Call (07) 5338 8715

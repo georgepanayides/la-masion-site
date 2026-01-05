@@ -1,4 +1,6 @@
+"use client";
 import Link from 'next/link';
+import { gtagReportConversion } from '@/app/lib/analytics';
 
 export default function Footer() {
   return (
@@ -53,7 +55,14 @@ export default function Footer() {
             </h4>
             <div className="space-y-3 text-xs text-silk-cream/70">
               <p className="uppercase tracking-wider">
-                <a href="tel:+61753388715" className="hover:text-clay transition-colors">
+                <a 
+                  href="tel:+61753388715" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    gtagReportConversion("tel:+61753388715");
+                  }}
+                  className="hover:text-clay transition-colors"
+                >
                   (07) 5338 8715
                 </a>
               </p>
