@@ -84,7 +84,9 @@ function BookingSuccessContent() {
       window.dataLayer!.push(args);
     }
 
-    gtag("event", "purchase", {
+    // Send conversion event with specific ID
+    gtag("event", "conversion", {
+      send_to: "AW-17841375498",
       transaction_id: transactionId,
       value: value,
       currency: "AUD",
