@@ -66,6 +66,10 @@ function BookingSuccessContent() {
   useEffect(() => {
     if (!isDraftLoaded) return;
 
+    // Only fire a purchase conversion when we have the booking draft.
+    // This avoids sending any early/placeholder events that can confuse Google diagnostics.
+    if (!draft) return;
+
     const value = draft 
       ? (Number.isFinite(draft.depositDollars) ? draft.depositDollars : draft.totalDollars)
       : 1.0;
@@ -79,16 +83,27 @@ function BookingSuccessContent() {
 
     // Ensure gtag is available
     window.dataLayer = window.dataLayer || [];
-    function gtag(...args: unknown[]) {
-      window.dataLayer!.push(args);
-    }
-
     const googleAdsId = (process.env.NEXT_PUBLIC_GOOGLE_ADS_ID ?? "AW-17841375498").trim();
     const conversionLabel = (process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LABEL ?? "").trim();
-    const sendTo = conversionLabel ? `${googleAdsId}/${conversionLabel}` : googleAdsId;
+
+    // Google Ads conversion events should always specify the conversion label.
+    // If it's missing, don't send the event (it may be treated as an incomplete tag).
+    if (!conversionLabel) return;
+
+    const sendTo = `${googleAdsId}/${conversionLabel}`;
+
+    // Push an object to dataLayer for GTM-based conversion tags.
+    window.dataLayer.push({
+      event: "google_ads_conversion",
+      send_to: sendTo,
+      transaction_id: transactionId,
+      value,
+      currency: "AUD",
+    });
 
     // Send conversion event with specific ID
-    gtag("event", "conversion", {
+    const gtag = (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag;
+    gtag?.("event", "conversion", {
       send_to: sendTo,
       transaction_id: transactionId,
       value: value,
