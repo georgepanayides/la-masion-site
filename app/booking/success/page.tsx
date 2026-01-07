@@ -81,16 +81,21 @@ function BookingSuccessContent() {
       transactionId = `fallback_${Date.now()}`;
     }
 
-    // Ensure gtag is available
+    // Ensure gtag is available (gtag() is a dataLayer queue)
     window.dataLayer = window.dataLayer || [];
+    const gtag = (...args: unknown[]) => {
+      window.dataLayer!.push(args);
+    };
+
     const googleAdsId = (process.env.NEXT_PUBLIC_GOOGLE_ADS_ID ?? "AW-17841375498").trim();
     const conversionLabel = (process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LABEL ?? "").trim();
+    const fallbackConversionLabel = "SVQtCK7oit4bEIqSt7tC";
 
-    // Google Ads conversion events should always specify the conversion label.
-    // If it's missing, don't send the event (it may be treated as an incomplete tag).
-    if (!conversionLabel) return;
-
-    const sendTo = `${googleAdsId}/${conversionLabel}`;
+    // Google Ads conversions are tied to a specific conversion action via the label.
+    // If the env var isn't set, fall back to the configured label so tracking still works.
+    const effectiveLabel = conversionLabel || fallbackConversionLabel;
+    const sendTo = googleAdsId && effectiveLabel ? `${googleAdsId}/${effectiveLabel}` : "";
+    if (!sendTo) return;
 
     // Push an object to dataLayer for GTM-based conversion tags.
     window.dataLayer.push({
@@ -102,8 +107,7 @@ function BookingSuccessContent() {
     });
 
     // Send conversion event with specific ID
-    const gtag = (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag;
-    gtag?.("event", "conversion", {
+    gtag("event", "conversion", {
       send_to: sendTo,
       transaction_id: transactionId,
       value: value,
