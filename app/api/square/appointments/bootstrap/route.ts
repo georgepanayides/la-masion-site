@@ -4,6 +4,22 @@ import { treatments } from "@/app/data/Treatments";
 import { getSquareClient } from "@/app/lib/square";
 import type { Currency } from "square";
 
+type CatalogObjectUpsert = {
+  id?: string;
+  type?: string;
+  version?: number | string;
+};
+
+type CatalogIdMapping = {
+  client_object_id?: string;
+  object_id?: string;
+};
+
+type CatalogBatchUpsertResponse = {
+  id_mappings?: CatalogIdMapping[];
+  objects?: CatalogObjectUpsert[];
+};
+
 function requireAdmin(req: Request) {
   const expected = (process.env.SQUARE_ADMIN_SECRET ?? "").trim();
   if (!expected) {
@@ -90,7 +106,7 @@ export async function POST(req: Request) {
     // NOTE: The Catalog API payload uses snake_case. The Square SDK does not reliably
     // transform nested CatalogObject data keys for batch upsert, so this endpoint uses
     // a direct REST call to the Square Catalog API.
-    const objects: any[] = [];
+    const objects: Record<string, unknown>[] = [];
 
     for (const treatment of treatments) {
       const itemTempId = `#svc_${treatment.id}`;
@@ -140,12 +156,14 @@ export async function POST(req: Request) {
       }),
     });
 
-    const upsertJson = (await upsertResponse.json()) as any;
+    const upsertJson = (await upsertResponse.json()) as unknown;
     if (!upsertResponse.ok) {
       throw new Error(`Status code: ${upsertResponse.status}\nBody: ${JSON.stringify(upsertJson, null, 2)}`);
     }
 
-    const idMappings = (upsertJson.id_mappings ?? []) as Array<{ client_object_id?: string; object_id?: string }>;
+    const parsed = upsertJson as CatalogBatchUpsertResponse;
+
+    const idMappings = (parsed.id_mappings ?? []) as CatalogIdMapping[];
     const realIdByTemp = new Map<string, string>();
     for (const m of idMappings) {
       if (m.client_object_id && m.object_id) {
@@ -154,10 +172,10 @@ export async function POST(req: Request) {
     }
 
     const variationVersionById = new Map<string, string>();
-    for (const obj of (upsertJson.objects ?? []) as any[]) {
+    for (const obj of parsed.objects ?? []) {
       if (obj?.type !== "ITEM_VARIATION") continue;
-      const id = obj?.id as string | undefined;
-      const version = obj?.version as number | string | undefined;
+      const id = obj.id;
+      const version = obj.version;
       if (!id || version === undefined || version === null) continue;
       variationVersionById.set(id, String(version));
     }

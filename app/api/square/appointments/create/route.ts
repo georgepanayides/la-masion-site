@@ -3,11 +3,25 @@ import { DateTime } from "luxon";
 
 import { bookingAddOns, treatments } from "@/app/data/Treatments";
 import { getSquareClient, resolveTeamMemberId } from "@/app/lib/square";
+import { sendBookingAlertEmail } from "@/app/lib/bookingAlerts";
+
+export const runtime = "nodejs";
+
+type SquareErrorDetail = {
+  category?: string;
+  code?: string;
+  detail?: string;
+  field?: string;
+};
+
+type SquareMaybeError = {
+  errors?: SquareErrorDetail[];
+};
 
 function formatSquareError(error: unknown): string {
   if (error instanceof Error) {
-    const anyErr = error as any;
-    const errors = anyErr?.errors as Array<{ category?: string; code?: string; detail?: string; field?: string }>;
+    const maybe = error as SquareMaybeError;
+    const errors = maybe.errors;
     if (Array.isArray(errors) && errors.length) {
       return errors
         .map((e) => {
@@ -63,6 +77,23 @@ function safeJsonParse<T>(raw: string): T | null {
   }
 }
 
+function toInt(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return Math.trunc(value);
+  if (typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value))) {
+    return Math.trunc(Number(value));
+  }
+  return null;
+}
+
+function getForcedDepositCents(): number | null {
+  const raw = process.env.SQUARE_FORCE_DEPOSIT_CENTS;
+  if (!raw) return null;
+  const parsed = toInt(raw);
+  if (parsed === null) return null;
+  if (parsed <= 0) return null;
+  return parsed;
+}
+
 type VariationMap = Record<string, string>;
 
 async function resolveServiceVariation(params: {
@@ -74,18 +105,23 @@ async function resolveServiceVariation(params: {
   const map = mapRaw ? safeJsonParse<VariationMap>(mapRaw) : null;
   const mappedId = map?.[params.serviceId];
   if (mappedId) {
-    const variationResponse = await params.client.catalog.object.get({
-      objectId: mappedId,
-    });
-    const obj = variationResponse.object;
-    if (!obj?.id || obj.type !== "ITEM_VARIATION") {
-      throw new Error("SQUARE_APPOINTMENT_VARIATION_MAP points to an invalid variation ID");
+    try {
+      const variationResponse = await params.client.catalog.object.get({
+        objectId: mappedId,
+      });
+      const obj = variationResponse.object;
+      if (obj?.id && obj.type === "ITEM_VARIATION" && typeof obj.version === "bigint") {
+        return { serviceVariationId: obj.id, serviceVariationVersion: obj.version };
+      }
+      console.warn(
+        `[Square] Mapped ID ${mappedId} retrieved but invalid (type or version). Falling back to search.`
+      );
+    } catch (e) {
+      console.warn(
+        `[Square] Could not fetch catalog object for mapped ID ${mappedId} (likely 404/deleted). Falling back to search.`,
+        e
+      );
     }
-    const version = obj.version;
-    if (typeof version !== "bigint") {
-      throw new Error("Square did not return a variation version");
-    }
-    return { serviceVariationId: obj.id, serviceVariationVersion: version };
   }
 
   // Fallback: search catalog by service name and pick the first APPOINTMENTS_SERVICE variation.
@@ -214,6 +250,16 @@ export async function POST(req: Request) {
 
     const selectedAddons = bookingAddOns.filter((a) => addonIds.includes(a.id));
 
+    const basePriceDollars = toInt(treatment.price) ?? 0;
+    const addonsPriceDollars = selectedAddons.reduce((sum, a) => sum + a.price, 0);
+    const totalDollars = basePriceDollars + addonsPriceDollars;
+
+    const forcedDepositCents = getForcedDepositCents();
+    const depositCents = forcedDepositCents ?? Math.round(totalDollars * 20);
+    const depositDollars = depositCents / 100;
+
+    const currency = (process.env.SQUARE_CURRENCY ?? "AUD").toUpperCase();
+
     const client = getSquareClient();
     const locationId = await resolveSquareLocationId(client);
     const location = (await client.locations.list()).locations?.find((l) => l.id === locationId);
@@ -250,6 +296,7 @@ export async function POST(req: Request) {
       createResponse = await client.bookings.create({
         idempotencyKey: bookingId,
         booking: {
+          status: "ACCEPTED",
           locationId,
           startAt,
           customerId,
@@ -270,6 +317,31 @@ export async function POST(req: Request) {
 
     const squareBookingId = createResponse.booking?.id ?? null;
 
+    const alertResult = await sendBookingAlertEmail({
+      bookingId,
+      squareBookingId,
+      locationId,
+      timezone,
+      startAtIsoUtc: startAt,
+      createdAtIsoUtc: new Date().toISOString(),
+      serviceName: treatment.name,
+      addonNames: selectedAddons.map((a) => a.name),
+      totalDollars,
+      depositDollars,
+      currency,
+      customer: {
+        firstName,
+        lastName,
+        email,
+        phone,
+      },
+      notes: customerNote,
+    });
+
+    if (!alertResult.ok) {
+      console.warn("[Booking alert] Not sent:", alertResult.error);
+    }
+
     return NextResponse.json(
       {
         ok: true,
@@ -277,6 +349,7 @@ export async function POST(req: Request) {
         squareBookingId,
         locationId,
         startAt,
+        alertSent: alertResult.ok,
       },
       { status: 200 },
     );
