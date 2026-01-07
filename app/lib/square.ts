@@ -34,30 +34,39 @@ export async function resolveTeamMemberId(client: SquareClient, locationId: stri
       limit: 100,
     });
 
-    const profiles: any[] = [];
-    // The SDK's list method returns an invalid async iterator in some versions or plain response in others.
-    // Based on `create/route.ts`, it seems to be iterable.
-    // We'll trust the existing usage pattern.
-    // @ts-ignore
-    for await (const profile of profilesPage) {
-      profiles.push(profile);
-    }
+    type TeamMemberProfile = {
+      teamMemberId?: string;
+      displayName?: string;
+    };
 
     const configuredName = (process.env.SQUARE_TEAM_MEMBER_NAME ?? "").trim().toLowerCase();
-    
-    if (configuredName) {
-      const match = profiles.find((p) => (p.displayName ?? "").toLowerCase().includes(configuredName));
-      if (match?.teamMemberId) {
-        console.log(`[Square] Resolved team member by name "${configuredName}": ${match.displayName} (${match.teamMemberId})`);
-        return match.teamMemberId;
+    let firstAvailable: TeamMemberProfile | null = null;
+
+    // Some versions of the Square SDK return an async-iterable page; others return a plain response.
+    // We support the async-iterable case (used elsewhere in this repo).
+    const maybeAsyncIterable = profilesPage as unknown as AsyncIterable<TeamMemberProfile>;
+    const iteratorFn = (maybeAsyncIterable as { [Symbol.asyncIterator]?: unknown })[Symbol.asyncIterator];
+    if (typeof iteratorFn === "function") {
+      for await (const profile of maybeAsyncIterable) {
+        if (!firstAvailable?.teamMemberId && profile?.teamMemberId) {
+          firstAvailable = profile;
+        }
+
+        if (configuredName) {
+          const display = (profile?.displayName ?? "").toLowerCase();
+          if (display.includes(configuredName) && profile?.teamMemberId) {
+            console.log(
+              `[Square] Resolved team member by name "${configuredName}": ${profile.displayName} (${profile.teamMemberId})`,
+            );
+            return profile.teamMemberId;
+          }
+        }
       }
-      console.warn(`[Square] Team member matching "${configuredName}" not found. Falling back to first available.`);
     }
 
-    const first = profiles.find((p) => p.teamMemberId);
-    if (first?.teamMemberId) {
-      console.log(`[Square] Resolved default team member: ${first.displayName} (${first.teamMemberId})`);
-      return first.teamMemberId;
+    if (firstAvailable?.teamMemberId) {
+      console.log(`[Square] Resolved default team member: ${firstAvailable.displayName} (${firstAvailable.teamMemberId})`);
+      return firstAvailable.teamMemberId;
     }
   } catch (error) {
     console.warn("[Square] Failed to list team member profiles:", error);
