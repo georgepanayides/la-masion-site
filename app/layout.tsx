@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter, Geist_Mono } from "next/font/google";
+import { GoogleTagManager } from "@next/third-parties/google";
 import Script from "next/script";
 import "./globals.css";
 import Banner from "@/components/banner/Banner";
@@ -37,9 +38,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const gtmId = process.env.NEXT_PUBLIC_GTM_ID ?? "GTM-PQ6BHL36";
+
   return (
     <html lang="en">
       <body className={`${brandSans.variable} ${brandSerif.variable} ${geistMono.variable} antialiased`}>
+        <GoogleTagManager gtmId={gtmId} />
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=AW-17841375498"
           strategy="afterInteractive"

@@ -26,7 +26,7 @@ type BookingDraft = {
 
 declare global {
   interface Window {
-    dataLayer?: unknown[];
+    dataLayer?: Object[];
   }
 }
 
