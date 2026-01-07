@@ -39,23 +39,29 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const gtmId = process.env.NEXT_PUBLIC_GTM_ID ?? "GTM-PQ6BHL36";
+  const googleAdsId = (process.env.NEXT_PUBLIC_GOOGLE_ADS_ID ?? "").trim();
 
   return (
     <html lang="en">
       <body className={`${brandSans.variable} ${brandSerif.variable} ${geistMono.variable} antialiased`}>
         <GoogleTagManager gtmId={gtmId} />
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=AW-17841375498"
-          strategy="afterInteractive"
-        />
-        <Script id="google-ads-gtag" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'AW-17841375498');
-          `}
-        </Script>
+        {googleAdsId ? (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${googleAdsId}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-ads-gtag" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                // Prevent an automatic page_view hit (which can't include transaction_id)
+                gtag('config', '${googleAdsId}', { send_page_view: false });
+              `}
+            </Script>
+          </>
+        ) : null}
         <a href="#main-content" className="sr-only focus:not-sr-only focus:translate-y-0 focus:opacity-100 block m-4 p-2 bg-white rounded-md border border-gray-200 z-50">Skip to main content</a>
         <Banner/>
         <Header/>

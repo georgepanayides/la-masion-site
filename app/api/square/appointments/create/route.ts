@@ -176,7 +176,7 @@ async function resolveCustomerId(params: {
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
+  phoneForSquare?: string | null;
 }): Promise<string | null> {
   let searchResponse;
   try {
@@ -201,13 +201,37 @@ async function resolveCustomerId(params: {
       givenName: params.firstName,
       familyName: params.lastName,
       emailAddress: params.email,
-      phoneNumber: params.phone,
+      ...(params.phoneForSquare ? { phoneNumber: params.phoneForSquare } : {}),
     });
   } catch (error) {
     throw new Error(`Square customers.create failed: ${formatSquareError(error)}`);
   }
 
   return created.customer?.id ?? null;
+}
+
+function normalizePhoneForSquare(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+
+  // Keep E.164 as-is if it looks valid enough.
+  if (/^\+\d{8,15}$/.test(trimmed)) return trimmed;
+
+  // Best-effort AU normalization.
+  const digitsOnly = trimmed.replace(/[^0-9]/g, "");
+  if (!digitsOnly) return null;
+
+  // If already includes country code 61
+  if (digitsOnly.startsWith("61") && digitsOnly.length >= 10) {
+    return `+${digitsOnly}`;
+  }
+
+  // Common AU mobile/landline starting with 0
+  if (digitsOnly.startsWith("0") && digitsOnly.length >= 9) {
+    return `+61${digitsOnly.slice(1)}`;
+  }
+
+  return null;
 }
 
 export async function POST(req: Request) {
@@ -274,12 +298,13 @@ export async function POST(req: Request) {
     });
 
     const teamMemberId = await resolveTeamMemberId(client, locationId);
+    const phoneForSquare = normalizePhoneForSquare(phone);
     const customerId = await resolveCustomerId({
       client,
       firstName,
       lastName,
       email,
-      phone,
+      phoneForSquare,
     });
 
     const sellerNote = [
@@ -293,33 +318,49 @@ export async function POST(req: Request) {
 
     let createResponse;
     try {
+      const bookingPayload: Record<string, unknown> = {
+        locationId,
+        startAt,
+        customerNote,
+        sellerNote,
+        appointmentSegments: [
+          {
+            teamMemberId,
+            serviceVariationId,
+            serviceVariationVersion,
+          },
+        ],
+      };
+
+      if (customerId) {
+        bookingPayload.customerId = customerId;
+      }
+
       createResponse = await client.bookings.create({
         idempotencyKey: bookingId,
         booking: {
-          status: "ACCEPTED",
-          locationId,
-          startAt,
-          customerId,
-          customerNote,
-          sellerNote,
-          appointmentSegments: [
-            {
-              teamMemberId,
-              serviceVariationId,
-              serviceVariationVersion,
-            },
-          ],
+          ...(bookingPayload as unknown as Record<string, never>),
         },
       });
     } catch (error) {
+      console.error("[Square] bookings.create failed", {
+        bookingId,
+        locationId,
+        serviceId,
+        startAt,
+        hasCustomerId: Boolean(customerId),
+        error: formatSquareError(error),
+      });
       throw new Error(`Square bookings.create failed: ${formatSquareError(error)}`);
     }
 
     const squareBookingId = createResponse.booking?.id ?? null;
+    const squareBookingStatus = createResponse.booking?.status ?? null;
 
     const alertResult = await sendBookingAlertEmail({
       bookingId,
       squareBookingId,
+      squareBookingStatus,
       locationId,
       timezone,
       startAtIsoUtc: startAt,

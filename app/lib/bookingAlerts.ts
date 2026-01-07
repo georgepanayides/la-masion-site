@@ -1,4 +1,3 @@
-import nodemailer from "nodemailer";
 import { DateTime } from "luxon";
 
 function env(name: string): string | null {
@@ -17,6 +16,7 @@ function envBool(name: string, defaultValue: boolean): boolean {
 export type BookingAlertPayload = {
   bookingId: string;
   squareBookingId: string | null;
+  squareBookingStatus?: string | null;
   locationId: string;
   timezone: string;
   startAtIsoUtc: string;
@@ -39,34 +39,27 @@ export async function sendBookingAlertEmail(payload: BookingAlertPayload): Promi
   const enabled = envBool("BOOKING_ALERTS_ENABLED", true);
   if (!enabled) return { ok: false, error: "Alerts disabled (BOOKING_ALERTS_ENABLED=false)" };
 
-  const host = env("SMTP_HOST");
-  const portRaw = env("SMTP_PORT");
-  const user = env("SMTP_USER");
-  const pass = env("SMTP_PASS");
-  const to = env("BOOKING_ALERT_EMAIL_TO");
-  const from = env("BOOKING_ALERT_EMAIL_FROM") ?? to;
+  const mailerSendToken = env("MAILERSEND_API_TOKEN");
 
-  if (!host || !portRaw || !user || !pass || !to || !from) {
-    return {
-      ok: false,
-      error:
-        "Missing SMTP/alert env vars. Need SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, BOOKING_ALERT_EMAIL_TO (and optionally BOOKING_ALERT_EMAIL_FROM).",
-    };
+  const toRaw = env("BOOKING_ALERT_EMAIL_TO");
+  const from = env("BOOKING_ALERT_EMAIL_FROM") ?? toRaw;
+
+  if (!mailerSendToken) {
+    return { ok: false, error: "Missing MAILERSEND_API_TOKEN" };
   }
 
-  const port = Number(portRaw);
-  if (!Number.isFinite(port) || port <= 0) {
-    return { ok: false, error: `Invalid SMTP_PORT: ${portRaw}` };
+  if (!toRaw || !from) {
+    return { ok: false, error: "Missing BOOKING_ALERT_EMAIL_TO and/or BOOKING_ALERT_EMAIL_FROM" };
   }
 
-  const secure = port === 465;
+  const toList = toRaw
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
 
-  const transporter = nodemailer.createTransport({
-    host,
-    port,
-    secure,
-    auth: { user, pass },
-  });
+  if (!toList.length) {
+    return { ok: false, error: "BOOKING_ALERT_EMAIL_TO is empty" };
+  }
 
   const startLocal = DateTime.fromISO(payload.startAtIsoUtc, { zone: "utc" }).setZone(payload.timezone);
   const createdLocal = DateTime.fromISO(payload.createdAtIsoUtc, { zone: "utc" }).setZone(payload.timezone);
@@ -90,13 +83,19 @@ export async function sendBookingAlertEmail(payload: BookingAlertPayload): Promi
   const addonLine = payload.addonNames.length ? payload.addonNames.join(", ") : "None";
   const money = (value: number) => `${payload.currency} $${value.toFixed(2)}`;
 
-  const subject = `New booking confirmed — ${payload.customer.firstName} ${payload.customer.lastName} — ${whenLine}`;
+  const squareStatus = (payload.squareBookingStatus ?? "").toString().toUpperCase();
+  const isPending = squareStatus === "PENDING";
+  const subjectPrefix = isPending ? "New booking request (pending confirmation)" : "New booking confirmed";
+
+  const subject = `${subjectPrefix} — ${payload.customer.firstName} ${payload.customer.lastName} — ${whenLine}`;
 
   const text = [
-    "NEW BOOKING CONFIRMED",
+    isPending ? "NEW BOOKING REQUEST (PENDING CONFIRMATION)" : "NEW BOOKING CONFIRMED",
     "",
     `Appointment date: ${appointmentDateLine}`,
     `Appointment time: ${appointmentTimeLine}`,
+    squareStatus ? `Square status: ${squareStatus}` : null,
+    isPending ? "Action: Accept/confirm this booking in Square Appointments to finalize." : null,
     "",
     `Service: ${payload.serviceName}`,
     `Add-ons: ${addonLine}`,
@@ -116,15 +115,52 @@ export async function sendBookingAlertEmail(payload: BookingAlertPayload): Promi
     .join("\n");
 
   try {
-    await transporter.sendMail({
-      from,
-      to,
-      subject,
-      text,
+    const response = await fetch("https://api.mailersend.com/v1/email", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${mailerSendToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: { email: from },
+        to: toList.map((email) => ({ email })),
+        subject,
+        text,
+      }),
     });
+
+    if (!response.ok) {
+      const body = await response.text().catch(() => "");
+
+      if (response.status === 401) {
+        return {
+          ok: false,
+          error:
+            `MailerSend API error (401 Unauthenticated). ` +
+            `MAILERSEND_API_TOKEN is invalid/expired or not set in this environment. ` +
+            `${body || response.statusText}`,
+        };
+      }
+
+      if (response.status === 403) {
+        return {
+          ok: false,
+          error:
+            `MailerSend API error (403 Forbidden). ` +
+            `The token may lack Email send permissions, or the sender domain isn't allowed. ` +
+            `${body || response.statusText}`,
+        };
+      }
+
+      return {
+        ok: false,
+        error: `MailerSend API error (${response.status}): ${body || response.statusText}`,
+      };
+    }
+
     return { ok: true };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to send booking alert email";
+    const message = error instanceof Error ? error.message : "MailerSend API request failed";
     return { ok: false, error: message };
   }
 }

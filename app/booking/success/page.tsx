@@ -83,9 +83,13 @@ function BookingSuccessContent() {
       window.dataLayer!.push(args);
     }
 
+    const googleAdsId = (process.env.NEXT_PUBLIC_GOOGLE_ADS_ID ?? "AW-17841375498").trim();
+    const conversionLabel = (process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LABEL ?? "").trim();
+    const sendTo = conversionLabel ? `${googleAdsId}/${conversionLabel}` : googleAdsId;
+
     // Send conversion event with specific ID
     gtag("event", "conversion", {
-      send_to: "AW-17841375498",
+      send_to: sendTo,
       transaction_id: transactionId,
       value: value,
       currency: "AUD",
